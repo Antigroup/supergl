@@ -1,9 +1,15 @@
 #pragma once
 
-#include <Python.h>
+#include <list>
+#include <map>
 #include <memory>
 #include <string>
-
+#include <iostream>
+#include <vector>
+#include <GL/glew.h>
+#include <SDL2/SDL.h>
+#include <glm/glm.hpp>
+#include <boost/python.hpp>
 
 //Error State
 enum class SUPERGL_ERROR
@@ -65,28 +71,3 @@ typedef std::weak_ptr<MeshEffect> MeshEffectWeakPtr;
 class ShaderProgram;
 typedef std::shared_ptr<ShaderProgram> ShaderProgramPtr;
 typedef std::weak_ptr<ShaderProgram> ShaderProgramWeakPtr;
-
-//Python interop
-
-#define CHECK_TYPE(object, type) (object->ob_type == type)
-#define NEW_PY_OBJECT(type, typeob) ((type*)typeob->tp_alloc(typeob,0))
-
-
-//PyObject * CustomAlloc(PyTypeObject * self, Py_ssize_t nitems);
-//void CustomFree(void * data);
-
-template<class T>
-PyObject * CustomAlloc(PyTypeObject * self, Py_ssize_t nitems)
-{
-	PyObject * res = (PyObject*)new T;
-	res->ob_refcnt = 1;
-	res->ob_type = self;
-
-	return res;
-}
-
-template<class T>
-void CustomFree(void * data)
-{
-	delete (T*)data;
-}

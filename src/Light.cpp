@@ -1,3 +1,4 @@
+#include "Common.h"
 #include "Light.h"
 #include "Transform.h"
 #include "Vector3.h"
@@ -160,253 +161,111 @@ void Light::GetSpotData(SpotLight & dest)
 }
 
 //Python interop
-static PyTypeObject supergl_LightType =
+
+LightWrapper::LightWrapper(Light::LightType type)
 {
-	PyVarObject_HEAD_INIT(NULL, 0)
-	"supergl.Light",
-	sizeof(supergl_Light)
-};
-
-PyTypeObject * g_LightType = &supergl_LightType;
-
-int Light_init(supergl_Light * self, PyObject * args)
-{
-	Light::LightType type = Light::LightType::DIRECTIONAL;
-
-	char * arg1;
-	if(PyArg_ParseTuple(args, "s", &arg1) == -1)
-	{
-		PyErr_SetString(PyExc_BaseException, "Argument didn't parse");
-		return -1;
-	}
-
-	if(arg1[0] == 'p' || arg1[0] == 'P')
-	{
-		type = Light::LightType::POINT;
-	}
-	else if(arg1[0] == 's' || arg1[0] == 'S')
-	{
-		type = Light::LightType::SPOT;
-	}
-	else if(arg1[0] == 'd' || arg1[0] == 'D')
-	{
-		type = Light::LightType::DIRECTIONAL;
-	}
-
-	self->value = std::make_shared<Light>(type);
-
-	g_Engine->AddLight(self->value);
-
-	return 0;
+	_base = std::make_shared<Light>(type);
+	g_Engine->AddLight(_base);
 }
 
-PyObject * Light_get_direction(supergl_Light * self, void * userdata)
+void LightWrapper::SetDirection(glm::vec3 direction)
 {
-	vmath_Vector3 * res = NEW_PY_OBJECT(vmath_Vector3, g_Vector3Type);
-
-	res->value = self->value->GetDirection();
-
-	return (PyObject*)res;
+	_base->SetDirection(direction);
 }
 
-int Light_set_direction(supergl_Light * self, PyObject * value, void * userdata)
+void LightWrapper::SetColor(glm::vec3 color)
 {
-	if(CHECK_TYPE(value, g_Vector3Type))
-	{
-		self->value->SetDirection(((vmath_Vector3*)value)->value);
-		return 0;
-	}
-	else
-	{
-		return -1;
-	}
+	_base->SetColor(color);
 }
 
-PyObject * Light_get_color(supergl_Light * self, void * userdata)
+void LightWrapper::SetAmbientIntensity(float intensity)
 {
-	vmath_Vector3 * res = NEW_PY_OBJECT(vmath_Vector3, g_Vector3Type);
-
-	res->value = self->value->GetColor();
-
-	return (PyObject*)res;
+	_base->SetAmbientIntensity(intensity);
 }
 
-int Light_set_color(supergl_Light * self, PyObject * value, void * userdata)
+void LightWrapper::SetIntensity(float intensity)
 {
-	if(CHECK_TYPE(value, g_Vector3Type))
-	{
-		self->value->SetColor(((vmath_Vector3*)value)->value);
-		return 0;
-	}
-	else
-	{
-		return -1;
-	}
+	_base->SetIntensity(intensity);
 }
 
-PyObject * Light_get_ambient_intensity(supergl_Light * self, void * userdata)
+void LightWrapper::SetTransform(TransformPtr transform)
 {
-	return PyFloat_FromDouble(self->value->GetAmbientIntensity());
+	_base->SetTransform(transform);
 }
 
-int Light_set_ambient_intensity(supergl_Light * self, PyObject * value, void * userdata)
+void LightWrapper::SetRange(float range)
 {
-	if(PyFloat_Check(value))
-	{
-		self->value->SetAmbientIntensity(PyFloat_AsDouble(value));
-		return 0;
-	}
-	else
-	{
-		return -1;
-	}
+	_base->SetRange(range);
 }
 
-PyObject * Light_get_intensity(supergl_Light * self, void * userdata)
+void LightWrapper::SetAngle(float angle)
 {
-	return PyFloat_FromDouble(self->value->GetIntensity());
+	_base->SetAngle(angle);
 }
 
-int Light_set_intensity(supergl_Light * self, PyObject * value, void * userdata)
+void LightWrapper::SetType(Light::LightType type)
 {
-	if(PyFloat_Check(value))
-	{
-		self->value->SetIntensity(PyFloat_AsDouble(value));
-		return 0;
-	}
-	else
-	{
-		return -1;
-	}
+	_base->SetType(type);
 }
 
-PyObject * Light_get_transform(supergl_Light * self, void * userdata)
+glm::vec3 LightWrapper::GetDirection()
 {
-	supergl_Transform * res = NEW_PY_OBJECT(supergl_Transform, g_TransformType);
-
-	res->value = self->value->GetTransform();
-
-	return (PyObject*)res;
+	return _base->GetDirection();
 }
 
-int Light_set_transform(supergl_Light * self, PyObject * value, void * userdata)
+glm::vec3 LightWrapper::GetColor()
 {
-	if(CHECK_TYPE(value, g_TransformType))
-	{
-		self->value->SetTransform(((supergl_Transform*)value)->value);
-		return 0;
-	}
-	else
-	{
-		return -1;
-	}
+	return _base->GetColor();
 }
 
-PyObject * Light_get_range(supergl_Light * self, void * userdata)
+float LightWrapper::GetAmbientIntensity()
 {
-	return PyFloat_FromDouble(self->value->GetRange());
+	return _base->GetAmbientIntensity();
 }
 
-int Light_set_range(supergl_Light * self, PyObject * value, void * userdata)
+float LightWrapper::GetIntensity()
 {
-	if(PyFloat_Check(value))
-	{
-		self->value->SetRange(PyFloat_AsDouble(value));
-		return 0;
-	}
-	else
-	{
-		return -1;
-	}
+	return _base->GetIntensity();
 }
 
-PyObject * Light_get_angle(supergl_Light * self, void * userdata)
+TransformPtr LightWrapper::GetTransform()
 {
-	return PyFloat_FromDouble(self->value->GetAngle());
+	return _base->GetTransform();
 }
 
-int Light_set_angle(supergl_Light * self, PyObject * value, void * userdata)
+float LightWrapper::GetRange()
 {
-	if(PyFloat_Check(value))
-	{
-		self->value->SetAngle(PyFloat_AsDouble(value));
-		return 0;
-	}
-	else
-	{
-		return -1;
-	}
+	return _base->GetRange();
 }
 
-PyObject * Light_get_type(supergl_Light * self, void * userdata)
+float LightWrapper::GetAngle()
 {
-	if(self->value->GetType() == Light::LightType::DIRECTIONAL)
-	{
-		return PyUnicode_FromString("directional");
-	}
-	else if(self->value->GetType() == Light::LightType::POINT)
-	{
-		return PyUnicode_FromString("point");
-	}
-	else if(self->value->GetType() == Light::LightType::SPOT)
-	{
-		return PyUnicode_FromString("spot");
-	}
-	else
-	{
-		return NULL;
-	}
+	return _base->GetAngle();
 }
 
-int Light_set_type(supergl_Light * self, PyObject * value, void * userdata)
+Light::LightType LightWrapper::GetType()
 {
-	Light::LightType type = Light::LightType::DIRECTIONAL;
-
-	char * arg1 = PyUnicode_AsUTF8(value);
-
-	if(arg1[0] == 'p' || arg1[0] == 'P')
-	{
-		type = Light::LightType::POINT;
-	}
-	else if(arg1[0] == 's' || arg1[0] == 'S')
-	{
-		type = Light::LightType::SPOT;
-	}
-	else if(arg1[0] == 'd' || arg1[0] == 'D')
-	{
-		type = Light::LightType::DIRECTIONAL;
-	}
-
-	self->value->SetType(type);
-
-	return 0;
+	return _base->GetType();
 }
 
-static PyGetSetDef Light_getsets[]
+
+void supergl_WrapLight()
 {
-	{"direction", (getter)Light_get_direction, (setter)Light_set_direction, "The direction for directional lights.", NULL},
-	{"color", (getter)Light_get_color, (setter)Light_set_color, "The color of the light.", NULL},
-	{"ambient_intensity", (getter)Light_get_ambient_intensity, (setter)Light_set_ambient_intensity, "The portion of the light that always hits a surface.", NULL},
-	{"intensity", (getter)Light_get_intensity, (setter)Light_set_intensity, "The strength of the light.", NULL},
-	{"transform", (getter)Light_get_transform, (setter)Light_set_transform, "The transform to use for point and spot lights.", NULL},
-	{"range", (getter)Light_get_range, (setter)Light_set_range, "The range for point and spot lights.", NULL},
-	{"angle", (getter)Light_get_angle, (setter)Light_set_angle, "The angle for spot lights.", NULL},
-	{"type", (getter)Light_get_type, (setter)Light_set_type, "The type of the light.", NULL},
-	{NULL, NULL, NULL, NULL, NULL},
-};
-
-void supergl_Light_Init(PyObject * mod)
-{
-	g_LightType->tp_new = PyType_GenericNew;
-	//g_LightType->tp_alloc = CustomAlloc;
-	//g_LightType->tp_free = CustomFree;
-	g_LightType->tp_alloc = CustomAlloc < supergl_Light > ;
-	g_LightType->tp_free = CustomFree < supergl_Light > ;
-	g_LightType->tp_init = (initproc)Light_init;
-	g_LightType->tp_getset = Light_getsets;
-
-	PyType_Ready(g_LightType);
-	Py_INCREF(g_LightType);
-
-	PyModule_AddObject(mod, "Light", (PyObject*)g_LightType);
+	using namespace boost::python;
+	auto light = class_<LightWrapper, std::shared_ptr<LightWrapper>>("Light", init<Light::LightType>()).
+		add_property("direction", &LightWrapper::GetDirection, &LightWrapper::SetDirection).
+		add_property("color", &LightWrapper::GetColor, &LightWrapper::SetColor).
+		add_property("ambient_intensity", &LightWrapper::GetAmbientIntensity, &LightWrapper::SetAmbientIntensity).
+		add_property("intensity", &LightWrapper::GetIntensity, &LightWrapper::SetIntensity).
+		add_property("transform", &LightWrapper::GetTransform, &LightWrapper::SetTransform).
+		add_property("range", &LightWrapper::GetRange, &LightWrapper::SetRange).
+		add_property("angle", &LightWrapper::GetAngle, &LightWrapper::SetAngle).
+		add_property("type", &LightWrapper::GetType, &LightWrapper::SetType);
+	{
+		scope outer = light;
+		enum_<Light::LightType>("LightType").
+			value("SPOT", Light::LightType::SPOT).
+			value("POINT", Light::LightType::POINT).
+			value("DIRECTIONAL", Light::LightType::DIRECTIONAL);
+	}
 }

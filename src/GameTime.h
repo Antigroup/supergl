@@ -1,8 +1,7 @@
 //Implements a timer with fairly high precision. Probably needs to be forked for different platforms.
 #pragma once
 
-#include <SDL2/SDL.h>
-#include <Python.h>
+#include "Common.h"
 
 class GameTime
 {
@@ -30,4 +29,4 @@ public:
 };
 
 //Python interop
-void supergl_GameTime_Init(PyObject * mod);
+void supergl_WrapGameTime();

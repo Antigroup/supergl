@@ -1,3 +1,4 @@
+#include "Common.h"
 #include "BasicEffect.h"
 #include "Light.h"
 #include "Material.h"

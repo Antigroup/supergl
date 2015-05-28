@@ -1,6 +1,6 @@
+#include "Common.h"
 #include "MeshFile.h"
 #include "Mesh.h"
-#include <glm/glm.hpp>
 
 MeshFile::MeshFile()
 {

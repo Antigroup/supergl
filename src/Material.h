@@ -3,8 +3,6 @@
 #pragma once
 
 #include "Common.h"
-#include <glm/glm.hpp>
-#include <map>
 
 class Material
 {
@@ -31,6 +29,7 @@ private:
 
 public:
 	Material();
+	Material(std::string effect);
 	~Material();
 
 	void Initialize(EffectPtr effect);
@@ -52,14 +51,22 @@ public:
 	PropertyType GetPropertyType(const std::string & name);
 
 	EffectPtr GetEffect();
+
+	boost::python::object getattr(std::string name);
+	void setattr(std::string name, boost::python::object value);
 };
 
 //Python interop
-struct supergl_Material
-{
-	PyObject_HEAD
-	MaterialPtr value;
-};
+//class MaterialWrapper: public Material
+//{
+//	PyObject * _self;
+//public:
+//	MaterialWrapper(PyObject* self, std::string effectName);
+//	MaterialWrapper(PyObject* self, const Material & mat);
+//	MaterialWrapper(PyObject* self, const MaterialWrapper & other);
+//
+//	boost::python::object getattr(std::string name);
+//	void setattr(std::string name, boost::python::object value);
+//};
 
-extern PyTypeObject * g_MaterialType;
-void supergl_Material_Init(PyObject * mod);
+void supergl_WrapMaterial();

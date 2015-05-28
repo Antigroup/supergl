@@ -10,6 +10,7 @@ private:
 	GLuint _tex;
 public:
 	Texture2D();
+	Texture2D(std::string file);
 	~Texture2D();
 
 	bool Load(const std::string & file);
@@ -20,11 +21,11 @@ public:
 };
 
 //Python interop
-struct supergl_Texture2D
+
+class Texture2DWrapper: public Texture2D
 {
-	PyObject_HEAD
-	Texture2DPtr value;
+public:
+	Texture2DWrapper(std::string file);
 };
 
-extern PyTypeObject * g_Texture2DType;
-void supergl_Texture2D_Init(PyObject * mod);
+void supergl_WrapTexture2D();

@@ -3,9 +3,7 @@
 #pragma once
 
 #include "Common.h"
-#include "GLWindow.h"
-#include <glm/glm.hpp>
-#include <vector>
+
 
 struct VertexPNT
 {
@@ -34,11 +32,4 @@ public:
 };
 
 //Python interop
-struct supergl_Mesh
-{
-	PyObject_HEAD
-	MeshPtr value;
-};
-
-extern PyTypeObject * g_MeshType;
-void supergl_Mesh_Init(PyObject * mod);
+void supergl_WrapMesh();

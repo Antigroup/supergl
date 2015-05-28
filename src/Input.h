@@ -1,8 +1,6 @@
 #pragma once
 
 #include "Common.h"
-#include <SDL2/SDL.h>
-#include <map>
 
 class Keyboard
 {
@@ -44,4 +42,4 @@ public:
 };
 
 //Python interop
-void supergl_Input_init(PyObject * mod);
+void supergl_WrapKeyboardAndMouse();

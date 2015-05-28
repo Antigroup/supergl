@@ -2,7 +2,6 @@
 #pragma once
 
 #include "Common.h"
-#include <glm/glm.hpp>
 
 class Transform
 {
@@ -41,11 +40,4 @@ public:
 };
 
 //Python interop
-struct supergl_Transform
-{
-	PyObject_HEAD
-	TransformPtr value;
-};
-
-extern PyTypeObject * g_TransformType;
-void supergl_Transform_Init(PyObject * mod);
+void supergl_WrapTransform();

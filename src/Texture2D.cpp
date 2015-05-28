@@ -1,3 +1,4 @@
+#include "Common.h"
 #include "Texture2D.h"
 #include <IL/il.h>
 
@@ -85,42 +86,15 @@ void Texture2D::Bind(GLuint textureUnit)
 }
 
 //Python interop
-static PyTypeObject supergl_Texture2DType =
+
+Texture2D::Texture2D(std::string file)
 {
-	PyVarObject_HEAD_INIT(NULL, 0)
-	"supergl.Texture2D",
-	sizeof(supergl_Texture2D)
-};
-
-PyTypeObject * g_Texture2DType = &supergl_Texture2DType;
-
-int Texture2D_init(supergl_Texture2D * self, PyObject * args)
-{
-	char * fileName;
-	if(PyArg_ParseTuple(args, "s", &fileName) == -1)
-		return -1;
-
-	self->value = std::make_shared<Texture2D>();
-
-	if(!self->value->Load(fileName))
-	{
-		return -1;
-	}
-
-	return 0;
+	this->Load(file);
 }
 
-void supergl_Texture2D_Init(PyObject * mod)
+void supergl_WrapTexture2D()
 {
-	g_Texture2DType->tp_new = PyType_GenericNew;
-	//g_Texture2DType->tp_alloc = CustomAlloc;
-	//g_Texture2DType->tp_free = CustomFree;
-	g_Texture2DType->tp_alloc = CustomAlloc < supergl_Texture2D > ;
-	g_Texture2DType->tp_free = CustomFree < supergl_Texture2D > ;
-	g_Texture2DType->tp_init = (initproc)Texture2D_init;
+	using namespace boost::python;
 
-	PyType_Ready(g_Texture2DType);
-	Py_INCREF(g_Texture2DType);
-
-	PyModule_AddObject(mod, "Texture2D", (PyObject*)g_Texture2DType);
+	class_<Texture2D, Texture2DPtr>("Texture2D", init<std::string>());
 }

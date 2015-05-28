@@ -4,8 +4,6 @@
 #pragma once
 
 #include "Common.h"
-#include <glm/glm.hpp>
-#include <vector>
 
 //This is constructed for each MeshRenderer and passed to its effect.
 //The lights passed to an effect are determined by their effect on the object in question.
@@ -38,14 +36,10 @@ public:
 	TransformPtr GetTransform();
 
 	void Draw();
+
+	static MeshRendererPtr Create(MeshPtr mesh, MaterialPtr mat, TransformPtr transform);
 };
 
 //Python interop
-struct supergl_MeshRenderer
-{
-	PyObject_HEAD
-	MeshRendererPtr value;
-};
 
-extern PyTypeObject * g_MeshRendererType;
-void supergl_MeshRenderer_Init(PyObject * mod);
+void supergl_WrapMeshRenderer();

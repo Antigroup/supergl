@@ -3,8 +3,6 @@
 
 #include "Common.h"
 #include "GLWindow.h"
-#include <glm/glm.hpp>
-#include <map>
 
 class ShaderProgram
 {

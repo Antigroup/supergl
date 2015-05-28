@@ -1,3 +1,4 @@
+#include "Common.h"
 #include "Material.h"
 #include "Effect.h"
 #include "Engine.h"
@@ -108,115 +109,89 @@ Material::PropertyType Material::GetPropertyType(const std::string & name)
 }
 
 //Python interop
-static PyTypeObject supergl_MaterialType =
+
+//MaterialWrapper::MaterialWrapper(PyObject* self, std::string effectName):_self(self)
+//{
+//	EffectPtr effect = g_EffectLibrary->GetEffect(effectName);
+//	this->Initialize(effect);
+//}
+//
+//MaterialWrapper::MaterialWrapper(PyObject* self, const Material & mat):Material(mat), _self(self)
+//{
+//
+//}
+//
+//MaterialWrapper::MaterialWrapper(PyObject* self, const MaterialWrapper & other) : Material(other), _self(self)
+//{
+//
+//}
+
+Material::Material(std::string effect)
 {
-	PyVarObject_HEAD_INIT(NULL, 0)
-	"supergl.Material",
-	sizeof(supergl_Material),
-};
+	Initialize(g_EffectLibrary->GetEffect(effect));
+}
 
-PyTypeObject * g_MaterialType = &supergl_MaterialType;
-
-int Material_init(supergl_Material * self, PyObject * args)
+boost::python::object Material::getattr(std::string name)
 {
-	if(PyTuple_Size(args) == 1)
-	{
-		char * arg1;
-		PyArg_ParseTuple(args, "s", &arg1);
+	using namespace boost::python;
 
-		self->value = std::make_shared<Material>();
-		self->value->Initialize(g_EffectLibrary->GetEffect(arg1));
-
-		return 0;
-	}
-	else
+	PropertyType type = GetPropertyType(name);
+	switch(type)
 	{
-		return -1;
+	case Material::PropertyType::Mat4:
+		return object();
+	case Material::PropertyType::Vec4:
+		return object(GetVec4(name));
+	case Material::PropertyType::Vec3:
+		return object(GetVec3(name));
+	case Material::PropertyType::Vec2:
+		return object(GetVec2(name));
+	case Material::PropertyType::Float:
+		return object(GetFloat(name));
+	case Material::PropertyType::Texture2D:
+		return object(GetTexture2D(name));
+	case Material::PropertyType::None:
+		return object();
+	default:
+		return object();
 	}
 }
 
-PyObject * Material_getattro(supergl_Material * self, PyObject * name)
+void Material::setattr(std::string name, boost::python::object value)
 {
-	char * key = PyUnicode_AsUTF8(name);
-	Material::PropertyType propType = self->value->GetPropertyType(key);
-
-	vmath_Vector2 * res2;
-	vmath_Vector3 * res3;
-	vmath_Vector4 * res4;
-	supergl_Texture2D * tex;
-
-	switch(propType)
+	using namespace boost::python;
+	PropertyType type = GetPropertyType(name);
+	switch(type)
 	{
-	case Material::PropertyType::Float:
-		return PyFloat_FromDouble(self->value->GetFloat(key));
-		break;
-	case Material::PropertyType::Vec2:
-		res2 = NEW_PY_OBJECT(vmath_Vector2, g_Vector2Type);
-		res2->value = self->value->GetVec2(key);
-		return (PyObject*)res2;
-		break;
-	case Material::PropertyType::Vec3:
-		res3 = NEW_PY_OBJECT(vmath_Vector3, g_Vector3Type);
-		res3->value = self->value->GetVec3(key);
-		return (PyObject*)res3;
+	case Material::PropertyType::Mat4:
 		break;
 	case Material::PropertyType::Vec4:
-		res4 = NEW_PY_OBJECT(vmath_Vector4, g_Vector4Type);
-		res4->value = self->value->GetVec4(key);
-		return (PyObject*)res4;
+		SetProperty(name, extract<glm::vec4>(value));
+		break;
+	case Material::PropertyType::Vec3:
+		SetProperty(name, extract<glm::vec3>(value));
+		break;
+	case Material::PropertyType::Vec2:
+		SetProperty(name, extract<glm::vec2>(value));
+		break;
+	case Material::PropertyType::Float:
+		SetProperty(name, extract<float>(value));
 		break;
 	case Material::PropertyType::Texture2D:
-		tex = NEW_PY_OBJECT(supergl_Texture2D, g_Texture2DType);
-		tex->value = self->value->GetTexture2D(key);
-		return (PyObject*)tex;
+		SetProperty(name, extract<Texture2DPtr>(value));
+		break;
+	case Material::PropertyType::None:
 		break;
 	default:
-
 		break;
 	}
 }
 
-int Material_setattro(supergl_Material * self, PyObject * name, PyObject * value)
+void supergl_WrapMaterial()
 {
-	char * key = PyUnicode_AsUTF8(name);
+	using namespace boost::python;
 
-	if(CHECK_TYPE(value, g_Vector2Type))
-	{
-		self->value->SetProperty(key, ((vmath_Vector2*)value)->value);
-	}
-	else if(CHECK_TYPE(value, g_Vector3Type))
-	{
-		self->value->SetProperty(key, ((vmath_Vector3*)value)->value);
-	}
-	else if(CHECK_TYPE(value, g_Vector4Type))
-	{
-		self->value->SetProperty(key, ((vmath_Vector4*)value)->value);
-	}
-	else if(PyFloat_Check(value))
-	{
-		self->value->SetProperty(key, PyFloat_AsDouble(value));
-	}
-	else if(CHECK_TYPE(value, g_Texture2DType))
-	{
-		self->value->SetProperty(key, ((supergl_Texture2D*)value)->value);
-	}
-
-	return 0;
-}
-
-void supergl_Material_Init(PyObject * mod)
-{
-	g_MaterialType->tp_new = PyType_GenericNew;
-	//g_MaterialType->tp_alloc = CustomAlloc;
-	//g_MaterialType->tp_free = CustomFree;
-	g_MaterialType->tp_alloc = CustomAlloc < supergl_Material > ;
-	g_MaterialType->tp_free = CustomFree < supergl_Material > ;
-	g_MaterialType->tp_init = (initproc)Material_init;
-	g_MaterialType->tp_getattro = (getattrofunc)Material_getattro;
-	g_MaterialType->tp_setattro = (setattrofunc)Material_setattro;
-
-	PyType_Ready(g_MaterialType);
-	Py_INCREF(g_MaterialType);
-
-	PyModule_AddObject(mod, "Material", (PyObject*)g_MaterialType);
+	class_<Material, MaterialPtr>("Material", init<std::string>()).
+		def("__getattr__", &Material::getattr).
+		def("__setattr__", &Material::setattr);
 }
