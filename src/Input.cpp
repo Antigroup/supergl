@@ -1,3 +1,4 @@
+#include "Common.h"
 #include "Input.h"
 #include <algorithm>
 
@@ -387,182 +388,19 @@ bool Mouse::ButtonReleased(int button)
 }
 
 //Python interop
-struct supergl_KeyboardOrMouse
+void supergl_WrapKeyboardAndMouse()
 {
-	PyObject_HEAD
-};
+	using namespace boost::python;
 
-static PyTypeObject supergl_KeyboardType =
-{
-	PyVarObject_HEAD_INIT(NULL, 0)
-	"supergl.Keyboard",
-	sizeof(supergl_KeyboardOrMouse),
-};
+	class_<Keyboard>("Keyboard", no_init).
+		def("button_down", &Keyboard::ButtonDown).staticmethod("button_down").
+		def("button_up", &Keyboard::ButtonUp).staticmethod("button_up").
+		def("button_pushed", &Keyboard::ButtonPushed).staticmethod("button_pushed").
+		def("button_released", &Keyboard::ButtonReleased).staticmethod("button_released");
 
-PyObject * Keyboard_button_down(PyObject * self, PyObject * args)
-{
-	char * arg1;
-	PyArg_ParseTuple(args, "s", &arg1);
-
-	if(Keyboard::ButtonDown(arg1))
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
-}
-
-PyObject * Keyboard_button_up(PyObject * self, PyObject * args)
-{
-	char * arg1;
-	PyArg_ParseTuple(args, "s", &arg1);
-
-	if(Keyboard::ButtonUp(arg1))
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
-}
-
-PyObject * Keyboard_button_pushed(PyObject * self, PyObject * args)
-{
-	char * arg1;
-	PyArg_ParseTuple(args, "s", &arg1);
-
-	if(Keyboard::ButtonPushed(arg1))
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
-}
-
-PyObject * Keyboard_button_released(PyObject * self, PyObject * args)
-{
-	char * arg1;
-	PyArg_ParseTuple(args, "s", &arg1);
-
-	if(Keyboard::ButtonReleased(arg1))
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
-}
-
-static PyTypeObject supergl_MouseType =
-{
-	PyVarObject_HEAD_INIT(NULL, 0)
-	"supergl.Mouse",
-	sizeof(supergl_KeyboardOrMouse),
-};
-
-PyObject * Mouse_button_down(PyObject * self, PyObject * args)
-{
-	int button;
-	PyArg_ParseTuple(args, "i", &button);
-
-	if(Mouse::ButtonDown(button))
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
-}
-
-PyObject * Mouse_button_up(PyObject * self, PyObject * args)
-{
-	int button;
-	PyArg_ParseTuple(args, "i", &button);
-
-	if(Mouse::ButtonUp(button))
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
-}
-
-PyObject * Mouse_button_pushed(PyObject * self, PyObject * args)
-{
-	int button;
-	PyArg_ParseTuple(args, "i", &button);
-
-	if(Mouse::ButtonPushed(button))
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
-}
-
-PyObject * Mouse_button_released(PyObject * self, PyObject * args)
-{
-	int button;
-	PyArg_ParseTuple(args, "i", &button);
-
-	if(Mouse::ButtonReleased(button))
-		Py_RETURN_TRUE;
-	else
-		Py_RETURN_FALSE;
-}
-
-PyObject * Mouse_get_x(PyObject * self, void * userdata)
-{
-	return PyLong_FromLong(Mouse::GetX());
-}
-
-PyObject * Mouse_get_y(PyObject * self, void * userdata)
-{
-	return PyLong_FromLong(Mouse::GetY());
-}
-
-PyObject * Mouse_get_dx(PyObject * self, void * userdata)
-{
-	return PyLong_FromLong(Mouse::GetDX());
-}
-
-PyObject * Mouse_get_dy(PyObject * self, void * userdata)
-{
-	return PyLong_FromLong(Mouse::GetDY());
-}
-
-int MouseDummySetter(PyObject * self, PyObject * value, void * userdata)
-{
-	return 0;
-}
-
-static PyGetSetDef Mouse_getsets[] =
-{
-	{"x", Mouse_get_x, MouseDummySetter, "Gets the x position of the mouse cursor.", NULL},
-	{"y", Mouse_get_y, MouseDummySetter, "Gets the y position of the mouse cursor.", NULL},
-	{"dx", Mouse_get_dx, MouseDummySetter, "Gets the change in x position of the mouse cursor.", NULL},
-	{"dy", Mouse_get_dy, MouseDummySetter, "Gets the change in y position of the mouse cursor.", NULL},
-	{NULL, NULL, NULL, NULL, NULL},
-};
-
-static PyMethodDef Keyboard_Methods[] =
-{
-	{"button_down", (PyCFunction)Keyboard_button_down, METH_VARARGS, "Returns true if the button named is currently down."},
-	{"button_up", (PyCFunction)Keyboard_button_up, METH_VARARGS, "Returns true if the button named is currently up."},
-	{"button_pushed", (PyCFunction)Keyboard_button_down, METH_VARARGS, "Returns true if the button named went from up to down over the last frame."},
-	{"button_released", (PyCFunction)Keyboard_button_down, METH_VARARGS, "Returns true if the button named went from down to up over the last frame."},
-	{NULL, NULL, NULL, NULL},
-};
-
-static PyMethodDef Mouse_Methods[] =
-{
-	{"button_down", (PyCFunction)Mouse_button_down, METH_VARARGS, "Returns true if the button named is currently down."},
-	{"button_up", (PyCFunction)Mouse_button_up, METH_VARARGS, "Returns true if the button named is currently up."},
-	{"button_pushed", (PyCFunction)Mouse_button_down, METH_VARARGS, "Returns true if the button named went from up to down over the last frame."},
-	{"button_released", (PyCFunction)Mouse_button_down, METH_VARARGS, "Returns true if the button named went from down to up over the last frame."},
-	{NULL, NULL, NULL, NULL},
-};
-
-void supergl_Input_init(PyObject * mod)
-{
-	supergl_KeyboardType.tp_new = PyType_GenericNew;
-	supergl_MouseType.tp_new = PyType_GenericNew;
-
-	supergl_KeyboardType.tp_methods = Keyboard_Methods;
-	supergl_MouseType.tp_methods = Mouse_Methods;
-	supergl_MouseType.tp_getset = Mouse_getsets;
-
-	PyType_Ready(&supergl_KeyboardType);
-	PyType_Ready(&supergl_MouseType);
-	Py_INCREF(&supergl_MouseType);
-	Py_INCREF(&supergl_KeyboardType);
-
-	supergl_KeyboardOrMouse * keyboard = PyObject_NEW(supergl_KeyboardOrMouse, &supergl_KeyboardType);
-	supergl_KeyboardOrMouse * mouse = PyObject_NEW(supergl_KeyboardOrMouse, &supergl_MouseType);
-
-	PyModule_AddObject(mod, "keyboard", (PyObject*)keyboard);
-	PyModule_AddObject(mod, "mouse", (PyObject*)mouse);
+	class_<Mouse>("Mouse", no_init).
+		def("button_down", &Mouse::ButtonDown).staticmethod("button_down").
+		def("button_up", &Mouse::ButtonUp).staticmethod("button_up").
+		def("button_pushed", &Mouse::ButtonPushed).staticmethod("button_pushed").
+		def("button_released", &Mouse::ButtonReleased).staticmethod("button_released");
 }

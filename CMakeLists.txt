@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
+include(cotire)
+
 project(supergl)
 
 if(WIN32)
@@ -86,13 +89,19 @@ file(GLOB supergl_HEADER_FILES
     
 if(WIN32)
     set(supergl_SOURCE_FILES ${supergl_SOURCE_FILES} ${supergl_HEADER_FILES})
+	add_definitions("/MP")
 endif(WIN32)
 
 include_directories(${supergl_INCLUDE_DIRS})
+link_directories("${CMAKE_PREFIX_PATH}/lib/${CMAKE_LIBRARY_ARCHITECTURE}") #For boost auto linking
 
 add_library(supergl SHARED ${supergl_SOURCE_FILES})
 target_link_libraries(supergl ${supergl_LINK_LIBRARIES})
 
+set_target_properties(supergl PROPERTIES COTIRE_UNITY_SOURCE_MAXIMUM_NUMBER_OF_INCLUDES "-j")
+
 if(WIN32)
     set_target_properties(supergl PROPERTIES SUFFIX ".pyd")
 endif(WIN32)
+
+cotire(supergl)

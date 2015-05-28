@@ -1,3 +1,4 @@
+#include "Common.h"
 #include "MeshRenderer.h"
 #include "Mesh.h"
 #include "Transform.h"
@@ -88,126 +89,25 @@ void MeshRenderer::Draw()
 }
 
 //Python interop
-static PyTypeObject supergl_MeshRendererType =
+
+MeshRendererPtr MeshRenderer::Create(MeshPtr mesh, MaterialPtr mat, TransformPtr transform)
 {
-	PyVarObject_HEAD_INIT(NULL, 0)
-	"supergl.MeshRenderer",
-	sizeof(supergl_MeshRenderer)
-};
+	MeshRendererPtr res = std::make_shared<MeshRenderer>();
+	res->SetMesh(mesh);
+	res->SetMaterial(mat);
+	res->SetTransform(transform);
+	g_Engine->AddMeshRenderer(res);
 
-PyTypeObject * g_MeshRendererType = &supergl_MeshRendererType;
-
-int MeshRenderer_init(supergl_MeshRenderer * self, PyObject * args)
-{
-	PyObject *mesh, *mat, *tform;
-
-	PyArg_ParseTuple(args, "O!O!O!", g_MeshType, &mesh, g_MaterialType, &mat, g_TransformType, &tform);
-
-	if(CHECK_TYPE(mesh, g_MeshType) &&
-		CHECK_TYPE(mat, g_MaterialType) &&
-		CHECK_TYPE(tform, g_TransformType))
-	{
-		self->value = std::make_shared<MeshRenderer>();
-		self->value->SetMesh(((supergl_Mesh*)mesh)->value);
-		self->value->SetMaterial(((supergl_Material*)mat)->value);
-		self->value->SetTransform(((supergl_Transform*)tform)->value);
-
-		g_Engine->AddMeshRenderer(self->value);
-
-		return 0;
-	}
-	else
-	{
-		return -1;
-	}
+	return res;
 }
 
-PyObject * MeshRenderer_get_mesh(supergl_MeshRenderer * self, void * userdata)
+void supergl_WrapMeshRenderer()
 {
-	supergl_Mesh * res = NEW_PY_OBJECT(supergl_Mesh, g_MeshType);
+	using namespace boost::python;
 
-	res->value = self->value->GetMesh();
-
-	return (PyObject*)res;
-}
-
-int MeshRenderer_set_mesh(supergl_MeshRenderer * self, PyObject * value, void * userdata)
-{
-	if(CHECK_TYPE(value, g_MeshType))
-	{
-		self->value->SetMesh(((supergl_Mesh*)value)->value);
-		return 0;
-	}
-	else
-	{
-		return -1;
-	}
-}
-
-PyObject * MeshRenderer_get_material(supergl_MeshRenderer * self, void * userdata)
-{
-	supergl_Material * res = NEW_PY_OBJECT(supergl_Material, g_MaterialType);
-
-	res->value = self->value->GetMaterial();
-
-	return (PyObject*)res;
-}
-
-int MeshRenderer_set_material(supergl_MeshRenderer * self, PyObject * value, void * userdata)
-{
-	if(CHECK_TYPE(value, g_MaterialType))
-	{
-		self->value->SetMaterial(((supergl_Material*)value)->value);
-		return 0;
-	}
-	else
-	{
-		return -1;
-	}
-}
-
-PyObject * MeshRenderer_get_transform(supergl_MeshRenderer * self, void * userdata)
-{
-	supergl_Transform * res = NEW_PY_OBJECT(supergl_Transform, g_TransformType);
-
-	res->value = self->value->GetTransform();
-
-	return (PyObject*)res;
-}
-
-int MeshRenderer_set_transform(supergl_MeshRenderer * self, PyObject * value, void * userdata)
-{
-	if(CHECK_TYPE(value, g_TransformType))
-	{
-		self->value->SetTransform(((supergl_Transform*)value)->value);
-		return 0;
-	}
-	else
-	{
-		return -1;
-	}
-}
-
-static PyGetSetDef MeshRenderer_getsets[] =
-{
-	{"mesh", (getter)MeshRenderer_get_mesh, (setter)MeshRenderer_set_mesh, "The mesh to be drawn.", NULL},
-	{"material", (getter)MeshRenderer_get_material, (setter)MeshRenderer_set_material, "The material to draw with.", NULL},
-	{"transform", (getter)MeshRenderer_get_transform, (setter)MeshRenderer_set_transform, "The transform to use to orient the mesh.", NULL},
-	{NULL, NULL, NULL, NULL, NULL},
-};
-
-void supergl_MeshRenderer_Init(PyObject * mod)
-{
-	g_MeshRendererType->tp_new = PyType_GenericNew;
-	//g_MeshRendererType->tp_alloc = CustomAlloc;
-	//g_MeshRendererType->tp_free = CustomFree;
-	g_MeshRendererType->tp_alloc = CustomAlloc < supergl_MeshRenderer > ;
-	g_MeshRendererType->tp_free = CustomFree < supergl_MeshRenderer > ;
-	g_MeshRendererType->tp_init = (initproc)MeshRenderer_init;
-	g_MeshRendererType->tp_getset = MeshRenderer_getsets;
-
-	PyType_Ready(g_MeshRendererType);
-	Py_INCREF(g_MeshRendererType);
-
-	PyModule_AddObject(mod, "MeshRenderer", (PyObject*)g_MeshRendererType);
+	class_<MeshRenderer, MeshRendererPtr>("MeshRenderer", no_init).
+		add_property("mesh", &MeshRenderer::GetMesh, &MeshRenderer::SetMesh).
+		add_property("material", &MeshRenderer::GetMaterial, &MeshRenderer::SetMaterial).
+		add_property("transform", &MeshRenderer::GetTransform, &MeshRenderer::SetTransform).
+		def("create", &MeshRenderer::Create).staticmethod("create");
 }

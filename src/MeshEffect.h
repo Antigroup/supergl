@@ -3,7 +3,6 @@
 #include "Common.h"
 #include "Effect.h"
 #include "MeshRenderer.h"
-#include <glm/glm.hpp>
 
 
 

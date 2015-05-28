@@ -1,3 +1,4 @@
+#include "Common.h"
 #include "Mesh.h"
 
 Mesh::Mesh()
@@ -71,25 +72,10 @@ void Mesh::End(GLuint posLoc, GLuint normalLoc, GLuint texLoc)
 }
 
 //Python interop
-static PyTypeObject supergl_MeshType =
+
+void supergl_WrapMesh()
 {
-	PyVarObject_HEAD_INIT(NULL, 0)
-	"supergl.Mesh",
-	sizeof(supergl_Mesh),
-};
+	using namespace boost::python;
 
-PyTypeObject * g_MeshType = &supergl_MeshType;
-
-void supergl_Mesh_Init(PyObject * mod)
-{
-	g_MeshType->tp_new = PyType_GenericNew;
-	//g_MeshType->tp_alloc = CustomAlloc;
-	//g_MeshType->tp_free = CustomFree;
-	g_MeshType->tp_alloc = CustomAlloc < supergl_Mesh > ;
-	g_MeshType->tp_free = CustomFree < supergl_Mesh > ;
-
-	PyType_Ready(g_MeshType);
-	Py_INCREF(g_MeshType);
-
-	PyModule_AddObject(mod, "Mesh", (PyObject*)g_MeshType);
+	class_<Mesh, MeshPtr>("Mesh");
 }

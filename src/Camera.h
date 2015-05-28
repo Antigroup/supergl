@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Common.h"
-#include <glm/glm.hpp>
 
 class Camera
 {
@@ -47,11 +46,4 @@ public:
 };
 
 //Python interop
-struct supergl_Camera
-{
-	PyObject_HEAD
-	CameraPtr value;
-};
-
-extern PyTypeObject * g_CameraType;
-void supergl_Camera_Init(PyObject* module);
+void supergl_WrapCamera();

@@ -45,8 +45,7 @@ public:
 //Windows version
 
 //#include <Windows.h>
-#include <GL/glew.h>
-#include <SDL2/SDL.h>
+#include "Common.h"
 
 #pragma comment(lib, "opengl32.lib")
 

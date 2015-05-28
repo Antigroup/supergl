@@ -2,7 +2,6 @@
 #pragma once
 
 #include "Common.h"
-#include <glm/glm.hpp>
 
 //C types to pass to shaders
 struct DirectionalLight

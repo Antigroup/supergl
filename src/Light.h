@@ -2,7 +2,6 @@
 
 #include "Common.h"
 #include "Shaders.h"
-#include <glm/glm.hpp>
 
 class Light
 {
@@ -50,11 +49,32 @@ public:
 };
 
 //Python interop
-struct supergl_Light
+
+class LightWrapper
 {
-	PyObject_HEAD
-	LightPtr value;
+private:
+	LightPtr _base;
+
+public:
+	LightWrapper(Light::LightType type);
+
+	void SetDirection(glm::vec3 direction);
+	void SetColor(glm::vec3 color);
+	void SetAmbientIntensity(float intensity);
+	void SetIntensity(float intensity);
+	void SetTransform(TransformPtr transform);
+	void SetRange(float range);
+	void SetAngle(float angle);
+	void SetType(Light::LightType type);
+
+	glm::vec3 GetDirection();
+	glm::vec3 GetColor();
+	float GetAmbientIntensity();
+	float GetIntensity();
+	TransformPtr GetTransform();
+	float GetRange();
+	float GetAngle();
+	Light::LightType GetType();
 };
 
-extern PyTypeObject * g_LightType;
-void supergl_Light_Init(PyObject * mod);
+void supergl_WrapLight();

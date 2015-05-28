@@ -2,7 +2,6 @@
 
 #include "Common.h"
 #include "GLWindow.h"
-#include <list>
 
 class Engine
 {
@@ -34,9 +33,4 @@ extern Texture2DPtr g_DefaultWhiteTexture;
 extern Texture2DPtr g_DefaultBlackTexture;
 
 //Python interop
-PyObject * supergl_main_camera(PyObject * self, PyObject * args);
-PyObject * supergl_quick_mesh(PyObject * self, PyObject * args);
-PyObject * supergl_load_mesh(PyObject * self, PyObject * args);
-PyObject * supergl_initialize(PyObject * self, PyObject * args);
-PyObject * supergl_main_loop(PyObject * self, PyObject * args);
-PyObject * supergl_perf_data(PyObject * self, PyObject * args);
+void supergl_WrapEngine();
